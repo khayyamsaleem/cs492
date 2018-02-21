@@ -7,13 +7,11 @@
 #define NUMP 5
 /*number of philosophers at the table*/
 
-#define EATERS 4
-/*number of philosophers allowed to eat concurrently*/
-
 pthread_mutex_t fork_mutex[NUMP];
 
 pthread_mutex_t attempt_to_eat;
-int currently_eating;
+int currently_eating; 
+/*Tracking how many are eating at a time so that only one philospher is eating at a time*/
 
 int main()
 {
