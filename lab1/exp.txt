@@ -15,6 +15,4 @@ less than 4, the philosopher is forced to WAIT on the pickup_fork operation
 (pthread_cond_wait),and is only allowed to continue once the condition
 "releases" and signals (pthread_cond_broadcast) to the other threads
 that it is okay to add another philosopher to the number that are eating.
-For safety, an assert statement was added to ensure the solution worked.:w
-
-
+For safety, an assert statement was added to ensure the solution worked.
