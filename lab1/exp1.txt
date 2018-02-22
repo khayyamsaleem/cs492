@@ -1,6 +1,0 @@
-To ensure that only one philosopher at a time attempts to eat,
-we simply wrapped the access of forks and the release of forks in a
-mutually exclusive semaphore. This assures that only one philosopher
-may attempt to pick up forks and begin eating at any time. The same
-goes for dropping forks; as the forks are a shared resource, we must
-protect them when both picking them up and dropping them.

@@ -1,3 +1,12 @@
+TASK1
+To ensure that only one philosopher at a time attempts to eat,
+we simply wrapped the access of forks and the release of forks in a
+mutually exclusive semaphore. This assures that only one philosopher
+may attempt to pick up forks and begin eating at any time. The same
+goes for dropping forks; as the forks are a shared resource, we must
+protect them when both picking them up and dropping them.
+
+TASK2
 For task 2, we assured that only 4 philosophers were allowed to ATTEMPT
 to eat (pick up forks) at one moment by including a pthread condition.
 For any given philosopher, their access to the forks is permissed ONLY if
@@ -7,4 +16,5 @@ less than 4, the philosopher is forced to WAIT on the pickup_fork operation
 "releases" and signals (pthread_cond_broadcast) to the other threads
 that it is okay to add another philosopher to the number that are eating.
 For safety, an assert statement was added to ensure the solution worked.:w
+
 
