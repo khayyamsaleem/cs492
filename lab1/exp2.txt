@@ -1,0 +1,10 @@
+For task 2, we assured that only 4 philosophers were allowed to ATTEMPT
+to eat (pick up forks) at one moment by including a pthread condition.
+For any given philosopher, their access to the forks is permissed ONLY if
+the number of philosophers currently eating is less than 4. If it is NOT
+less than 4, the philosopher is forced to WAIT on the pickup_fork operation
+(pthread_cond_wait),and is only allowed to continue once the condition
+"releases" and signals (pthread_cond_broadcast) to the other threads
+that it is okay to add another philosopher to the number that are eating.
+For safety, an assert statement was added to ensure the solution worked.:w
+

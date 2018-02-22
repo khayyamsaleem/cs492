@@ -9,9 +9,8 @@
 
 pthread_mutex_t fork_mutex[NUMP];
 
-pthread_mutex_t attempt_to_eat;
-int currently_eating; 
-/*Tracking how many are eating at a time so that only one philospher is eating at a time*/
+pthread_mutex_t pickup_forks;
+pthread_mutex_t drop_forks;
 
 int main()
 {
@@ -19,9 +18,9 @@ int main()
   pthread_t diner_thread[NUMP];
   int dn[NUMP];
   void *diner();
-  currently_eating = 0;
 
-  pthread_mutex_init(&attempt_to_eat, NULL);
+  pthread_mutex_init(&pickup_forks, NULL);
+  pthread_mutex_init(&drop_forks, NULL);
 
 
   for (i=0;i<NUMP;i++)
@@ -37,6 +36,8 @@ int main()
 
   for (i=0;i<NUMP;i++)
     pthread_mutex_destroy(&fork_mutex[i]);
+  pthread_mutex_destroy(&pickup_forks);
+  pthread_mutex_destroy(&drop_forks);
   pthread_exit(0);
 
 }
@@ -51,21 +52,18 @@ void *diner(int *i)
     printf("%d is thinking\n", v);
     sleep( v/2);
     printf("%d is hungry\n", v);
-    pthread_mutex_lock(&attempt_to_eat);
+    pthread_mutex_lock(&pickup_forks);
     pthread_mutex_lock(&fork_mutex[v]); /*picking up a left fork */
     pthread_mutex_lock(&fork_mutex[(v+1)%NUMP]); /*picking up a right fork */
+    pthread_mutex_unlock(&pickup_forks);
     printf("%d is eating\n", v);
     eating++;
-    currently_eating++;
-    printf("%d philosophers currently eating.\n",currently_eating);
     sleep(1);
     printf("%d is done eating\n", v);
-    currently_eating--;
+    pthread_mutex_lock(&drop_forks);
     pthread_mutex_unlock(&fork_mutex[v]); /*releasing a left fork */
     pthread_mutex_unlock(&fork_mutex[(v+1)%NUMP]); /*releasing a right fork */
-    pthread_mutex_unlock(&attempt_to_eat);
-
-
+    pthread_mutex_unlock(&drop_forks);
   }
   pthread_exit(NULL);
 }
