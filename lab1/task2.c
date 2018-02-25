@@ -36,6 +36,7 @@ int main(){
     for(i=0;i<NUMP;++i) pthread_mutex_destroy(&fork_mutex[i]);
     pthread_mutex_destroy(&grab_forks);
     pthread_mutex_destroy(&drop_forks);
+    pthread_cond_destroy(&eating_condition);
     pthread_exit(0);
 }
 
