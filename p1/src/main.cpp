@@ -35,9 +35,11 @@ void *producer(void *args) {
 	while (true) {
 		//only create new products if queue is not full and we have products left to create
 		pthread_mutex_lock(&access_queue);
-		while (waiting_products.size() >= queue_size
-				&& num_produced < num_products)
-			pthread_cond_wait(&full_queue, &access_queue);
+		//only wait if we don't have the unlimited queue size config
+		if (queue_size != 0)
+			while (waiting_products.size() >= queue_size
+					&& num_produced < num_products)
+				pthread_cond_wait(&full_queue, &access_queue);
 		//only create products if we have to
 		if (num_produced < num_products) {
 			//use product constructor
@@ -54,6 +56,7 @@ void *producer(void *args) {
 			pthread_cond_broadcast(&queue_not_full);
 			//release access to queue
 			pthread_mutex_unlock(&access_queue);
+			//100000 µs == 100ms
 			usleep(100000);
 		} else {
 			//done with all products we needed to make, let other producers know
@@ -72,7 +75,7 @@ int main(int argc, char* argv[]) {
 		std::exit(1);
 	}
 	for (int i = 1; i < argc; ++i) {
-		if ((i <= 4 || i >= 6) && std::atoi(argv[i]) <= 0) {
+		if ((i <= 4 || i >= 6) && std::atoi(argv[i]) < 0) {
 			std::cerr << "Invalid Value " << argv[i] << " for p" << i
 					<< std::endl;
 			std::exit(1);
@@ -128,4 +131,5 @@ int main(int argc, char* argv[]) {
 					- (float) start_time / CLOCKS_PER_SEC << std::endl;
 
 	pthread_exit(0);
+	std::exit(0);
 }
