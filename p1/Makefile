@@ -1,4 +1,5 @@
-CPPFLAGS += -I include
+CPPFLAGS += -I include -pthread
+CXX=g++
 
 SRC=src/main.cpp #\
 #    src/consumer.cpp \
@@ -11,7 +12,7 @@ OUT=prodcons
 
 
 all: $(OBJ)
-	g++ $(CPPFLAGS) $(OBJ) -o $(OUT) -lpthread
+	$(CXX) $(CPPFLAGS) $(OBJ) -o $(OUT)
 
 clean:
 	$(RM) $(OUT)
