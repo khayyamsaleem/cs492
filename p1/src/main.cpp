@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <queue>
 #include <assert.h>
+#include <ostream>
 
 #include "prodcons.h"
 
@@ -17,6 +18,10 @@ std::queue<Product*> waiting_products;
 int num_produced, num_consumed;
 pthread_cond_t full_queue, queue_not_full;
 clock_t start_time, end_time;
+Color::Modifier red(Color::FG_RED);
+Color::Modifier def(Color::FG_DEFAULT);
+Color::Modifier green(Color::FG_GREEN);
+Color::Modifier blue(Color::FG_LIGHT_BLUE);
 
 const char* usage() {
 	return "Usage: ./prodcons p1 p2 p3 p4 p5 p6 p7\n"
@@ -29,6 +34,8 @@ const char* usage() {
 			"        p6: Value of quantum used for round-robin scheduling\n"
 			"        p7: Seed for random number generator";
 }
+
+
 
 void *producer(void *args) {
 	//getting id for producer
@@ -45,12 +52,12 @@ void *producer(void *args) {
 		//only create products if we have to
 		if (num_produced < num_products) {
 			//use product constructor
-			Product *p = new Product(my_id, num_produced++, clock(), rand());
+			Product *p = new Product(num_produced++, clock(), rand());
 			waiting_products.push(p);
 			//std::cout << "push " << p << "\n";
 			//print product details
 			std::ostringstream os;
-			os << *p;
+			os << green << "Producer " << my_id << " produced " << blue << *p << def << std::endl;
 			std::cout << os.str();
 			//let other threads know that queue is not yet full
 			pthread_cond_broadcast(&queue_not_full);
@@ -92,7 +99,7 @@ void *consumer(void *args) {
 			for (int i = 0; i < p->life; ++i)
 				fn(10);
 			std::ostringstream os;
-			os << "Consumer " << my_id << " consumed " << *p;
+			os << red << "Consumer " << my_id << " consumed " << blue << *p << def << std::endl;
 			std::cout << os.str();
 			usleep(100000);
 		} else if (num_consumed < num_products && s_algo == 1) { //ROUND ROBIN
@@ -119,7 +126,7 @@ void *consumer(void *args) {
 				//finish the remainder
 				for (int i = 0; i < p->life; ++i) fn(10);
 				std::ostringstream os;
-				os << "Consumer " << my_id << " consumed " << *p;
+				os << red << "Consumer " << my_id << " consumed " << blue << *p << def << std::endl;
 				std::cout << os.str();
 			}
 			pthread_mutex_unlock(&access_queue);
@@ -189,15 +196,13 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < num_consumers; ++i)
 		pthread_join(consumers[i], NULL);
 
-	std::cout << "Products in queue: " << waiting_products.size() << std::endl;
 
-	//stop monitoring time
-	end_time = clock();
 
 	pthread_mutex_destroy(&access_queue);
 	pthread_cond_destroy(&full_queue);
-
+	std::cout << "Products in queue: " << waiting_products.size() << std::endl;
+	//stop monitoring time
 	std::cout << "Time elapsed: "
-			<< (float) end_time / CLOCKS_PER_SEC
+			<< (float) clock() / CLOCKS_PER_SEC
 					- (float) start_time / CLOCKS_PER_SEC << std::endl;
 }
