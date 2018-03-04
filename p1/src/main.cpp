@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <queue>
+#include <assert.h>
 
 #include "prodcons.h"
 
@@ -46,6 +47,7 @@ void *producer(void *args) {
 			//use product constructor
 			Product *p = new Product(my_id, num_produced++, clock(), rand());
 			waiting_products.push(p);
+			//std::cout << "push " << p << "\n";
 			//print product details
 			std::ostringstream os;
 			os << *p;
@@ -75,13 +77,14 @@ void *consumer(void *args) {
 	int my_id = *(int *) args;
 	while (true) {
 		pthread_mutex_lock(&access_queue);
-		while (waiting_products.size() == 0 && num_consumed < num_products)
+		while (waiting_products.empty() && num_consumed < num_products)
 			pthread_cond_wait(&queue_not_full, &access_queue);
 		//check if there are any products left to consume
 		//and which algorithm to use
 		Product *p = waiting_products.front();
-		waiting_products.pop();
+		//std::cout << "popped " << *p << "\n";
 		if (num_consumed < num_products && s_algo == 0) { //FCFS
+			waiting_products.pop();
 			++num_consumed;
 			//let producers know that there's space
 			pthread_cond_broadcast(&full_queue);
@@ -97,6 +100,7 @@ void *consumer(void *args) {
 		//if there is still some life left, we've gta keep running the func
 		//and put the product back in the queue
 		// "taking a bite"
+			waiting_products.pop();
 			if (p->life >= quantum) {
 				//reducing life
 				p->life -= quantum;
@@ -196,7 +200,4 @@ int main(int argc, char* argv[]) {
 	std::cout << "Time elapsed: "
 			<< (float) end_time / CLOCKS_PER_SEC
 					- (float) start_time / CLOCKS_PER_SEC << std::endl;
-
-	pthread_exit(0);
-	std::exit(0);
 }
