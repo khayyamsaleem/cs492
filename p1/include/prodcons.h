@@ -7,12 +7,12 @@
 typedef struct Product {
 	unsigned producer_id;
     unsigned product_id;
-    float timestamp;
+    clock_t timestamp;
     unsigned life;
     explicit Product(const unsigned _producer_id, const unsigned _product_id, const clock_t _timestamp, const unsigned _life){
     	    producer_id = _producer_id;
         product_id = _product_id;
-        timestamp = ((float)_timestamp)/CLOCKS_PER_SEC;
+        timestamp = _timestamp;
         life = _life%1024;
     }
     friend std::ostream& operator<<(std::ostream& os, const Product &prod){
