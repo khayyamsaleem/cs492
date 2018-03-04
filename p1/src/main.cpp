@@ -7,8 +7,11 @@
 #include <queue>
 #include <assert.h>
 #include <ostream>
+#include <chrono>
 
 #include "prodcons.h"
+
+using std::chrono::system_clock;
 
 int num_producers, num_consumers, num_products, queue_size, s_algo, quantum,
 		seed;
@@ -17,7 +20,8 @@ bool first_thread;
 std::queue<Product*> waiting_products;
 int num_produced, num_consumed;
 pthread_cond_t full_queue, queue_not_full;
-clock_t start_time, end_time;
+//clock_t start_time, end_time;
+system_clock::time_point start_time, end_time;
 Color::Modifier red(Color::FG_RED);
 Color::Modifier def(Color::FG_DEFAULT);
 Color::Modifier green(Color::FG_GREEN);
@@ -180,7 +184,7 @@ int main(int argc, char* argv[]) {
 	int c_ids[num_consumers];
 
 	//start monitoring time
-	start_time = clock();
+	start_time = system_clock::now();
 
 	for (int i = 0; i < num_producers; ++i) {
 		p_ids[i] = i;
@@ -196,13 +200,11 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < num_consumers; ++i)
 		pthread_join(consumers[i], NULL);
 
-
-
 	pthread_mutex_destroy(&access_queue);
 	pthread_cond_destroy(&full_queue);
 	std::cout << "Products in queue: " << waiting_products.size() << std::endl;
 	//stop monitoring time
+	std::chrono::duration<double> diff = system_clock::now() - start_time;
 	std::cout << "Time elapsed: "
-			<< (float) clock() / CLOCKS_PER_SEC
-					- (float) start_time / CLOCKS_PER_SEC << std::endl;
+			<< diff.count() << "s" << std::endl;
 }

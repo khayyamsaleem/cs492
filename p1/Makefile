@@ -1,15 +1,8 @@
-CPPFLAGS += -I include -pthread -g
+CXXFLAGS += -I include -pthread -g -std=c++11
 
-SRC=src/main.cpp #\
-#    src/function.cpp
-
-OBJ=$(SRC:.c=.o)
-
-OUT=prodcons
-
-
-all: $(OBJ)
-	$(CXX) $(CPPFLAGS) $(OBJ) -o $(OUT)
+prodcons: src/main.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:
-	$(RM) $(OUT)
+	$(RM) prodcons
+	$(RM) -r *.dSYM
