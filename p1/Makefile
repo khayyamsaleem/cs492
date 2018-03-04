@@ -1,4 +1,4 @@
-CPPFLAGS += -I include -pthread -g
+CPPFLAGS += -I include -pthread -g -std=c++11
 
 SRC=src/main.cpp #\
 #    src/function.cpp
