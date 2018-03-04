@@ -1,5 +1,4 @@
-CPPFLAGS += -I include -pthread
-CXX=g++
+CPPFLAGS += -I include -pthread -g
 
 SRC=src/main.cpp #\
 #    src/function.cpp

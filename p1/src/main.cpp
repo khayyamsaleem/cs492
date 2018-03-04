@@ -13,7 +13,7 @@ int num_producers, num_consumers, num_products, queue_size, s_algo, quantum,
 pthread_mutex_t access_queue;
 bool first_thread;
 std::queue<Product*> waiting_products;
-int num_produced;
+int num_produced, num_consumed;
 pthread_cond_t full_queue, queue_not_full;
 clock_t start_time, end_time;
 
@@ -33,10 +33,11 @@ void *producer(void *args) {
 	//getting id for producer
 	unsigned my_id = *(unsigned *) args;
 	while (true) {
-		//only create new products if queue is not full and we have products left to create
+		//protect access to the queue
 		pthread_mutex_lock(&access_queue);
 		//only wait if we don't have the unlimited queue size config
 		if (queue_size != 0)
+			//only create new products if queue is not full and we have products left to create
 			while (waiting_products.size() >= queue_size
 					&& num_produced < num_products)
 				pthread_cond_wait(&full_queue, &access_queue);
@@ -44,9 +45,6 @@ void *producer(void *args) {
 		if (num_produced < num_products) {
 			//use product constructor
 			Product *p = new Product(my_id, num_produced++, clock(), rand());
-			//protect access to queue
-//			pthread_mutex_lock(&access_queue);
-			//add to queue
 			waiting_products.push(p);
 			//print product details
 			std::ostringstream os;
@@ -61,6 +59,70 @@ void *producer(void *args) {
 		} else {
 			//done with all products we needed to make, let other producers know
 			pthread_cond_broadcast(&full_queue);
+			//release queue
+			pthread_mutex_unlock(&access_queue);
+			break;
+		}
+	}
+	pthread_exit(NULL);
+}
+
+unsigned fn(unsigned n) {
+	return (n == 0 || n == 1) ? n : fn(n - 1) + fn(n - 2);
+}
+
+void *consumer(void *args) {
+	int my_id = *(int *) args;
+	while (true) {
+		pthread_mutex_lock(&access_queue);
+		while (waiting_products.size() == 0 && num_consumed < num_products)
+			pthread_cond_wait(&queue_not_full, &access_queue);
+		//check if there are any products left to consume
+		//and which algorithm to use
+		Product *p = waiting_products.front();
+		waiting_products.pop();
+		if (num_consumed < num_products && s_algo == 0) { //FCFS
+			++num_consumed;
+			//let producers know that there's space
+			pthread_cond_broadcast(&full_queue);
+			pthread_mutex_unlock(&access_queue);
+			for (int i = 0; i < p->life; ++i)
+				fn(10);
+			std::ostringstream os;
+			os << "Consumer " << my_id << " consumed " << *p;
+			std::cout << os.str();
+			usleep(100000);
+		} else if (num_consumed < num_products && s_algo == 1) { //ROUND ROBIN
+		//round robin
+		//if there is still some life left, we've gta keep running the func
+		//and put the product back in the queue
+		// "taking a bite"
+			if (p->life >= quantum) {
+				//reducing life
+				p->life -= quantum;
+				//simulating consumption of a product
+				for (int i = 0; i < quantum; ++i) fn(10);
+				//reinsert product in queue
+				waiting_products.push(p);
+				//inform ONLY consumers that the product is back in the queue
+				pthread_cond_broadcast(&queue_not_full);
+			} else {
+				//case where there is less than a quantum of life left,
+				//finish consuming ("finishing the meal")
+				++num_consumed;
+				//tell producers that we've made room in the queue
+				pthread_cond_broadcast(&full_queue);
+				//finish the remainder
+				for (int i = 0; i < p->life; ++i) fn(10);
+				std::ostringstream os;
+				os << "Consumer " << my_id << " consumed " << *p;
+				std::cout << os.str();
+			}
+			pthread_mutex_unlock(&access_queue);
+			usleep(100000);
+		} else {
+			//consumed all products, tell consumers to chill out
+			pthread_cond_broadcast(&queue_not_full);
 			pthread_mutex_unlock(&access_queue);
 			break;
 		}
@@ -96,14 +158,15 @@ int main(int argc, char* argv[]) {
 	srand(seed);
 	first_thread = true;
 	num_produced = 0;
+	num_consumed = 0;
 	pthread_mutex_init(&access_queue, NULL);
 	pthread_cond_init(&full_queue, NULL);
 	pthread_cond_init(&queue_not_full, NULL);
 
 	pthread_t producers[num_producers];
-//	pthread_t consumers[num_consumers];
+	pthread_t consumers[num_consumers];
 	int p_ids[num_producers];
-//	int c_ids[num_consumers];
+	int c_ids[num_consumers];
 
 	//start monitoring time
 	start_time = clock();
@@ -112,11 +175,15 @@ int main(int argc, char* argv[]) {
 		p_ids[i] = i;
 		pthread_create(&producers[i], NULL, (void*(*)(void*))(&producer), (void*)&p_ids[i]);
 	}
+	for (int i = 0; i < num_consumers; ++i) {
+		c_ids[i] = i;
+		pthread_create(&producers[i], NULL, (void*(*)(void*))(&consumer), (void*)&c_ids[i]);
+	}
 	//join all threads
 	for (int i = 0; i < num_producers; ++i)
 		pthread_join(producers[i], NULL);
-	//	for (int i = 0; i < num_consumers; ++i)
-	//		pthread_join(consumers[i], NULL);
+	for (int i = 0; i < num_consumers; ++i)
+		pthread_join(consumers[i], NULL);
 
 	std::cout << "Products in queue: " << waiting_products.size() << std::endl;
 
