@@ -7,7 +7,6 @@
 #include <queue>
 #include <assert.h>
 #include <ostream>
-#include <chrono>
 
 #include "prodcons.h"
 
@@ -20,8 +19,7 @@ bool first_thread;
 std::queue<Product*> waiting_products;
 int num_produced, num_consumed;
 pthread_cond_t full_queue, queue_not_full;
-//clock_t start_time, end_time;
-system_clock::time_point start_time, end_time;
+system_clock::time_point start_time;
 Color::Modifier red(Color::FG_RED);
 Color::Modifier def(Color::FG_DEFAULT);
 Color::Modifier green(Color::FG_GREEN);
@@ -56,7 +54,7 @@ void *producer(void *args) {
 		//only create products if we have to
 		if (num_produced < num_products) {
 			//use product constructor
-			Product *p = new Product(num_produced++, clock(), rand());
+			Product *p = new Product(num_produced++, system_clock::now(), start_time, rand());
 			waiting_products.push(p);
 			//std::cout << "push " << p << "\n";
 			//print product details
