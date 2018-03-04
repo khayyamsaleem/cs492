@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
 	}
 	for (int i = 0; i < num_consumers; ++i) {
 		c_ids[i] = i;
-		pthread_create(&producers[i], NULL, (void*(*)(void*))(&consumer), (void*)&c_ids[i]);
+		pthread_create(&consumers[i], NULL, (void*(*)(void*))(&consumer), (void*)&c_ids[i]);
 	}
 	//join all threads
 	for (int i = 0; i < num_producers; ++i)
