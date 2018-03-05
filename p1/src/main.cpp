@@ -19,7 +19,7 @@ bool first_thread;
 std::queue<Product*> waiting_products;
 int num_produced, num_consumed;
 pthread_cond_t full_queue, queue_not_full;
-system_clock::time_point start_time;
+system_clock::time_point start_time, end_producing, end_consuming;
 //Turn-around times
 std::chrono::duration<double> turn_min = std::chrono::system_clock::duration::max();
 std::chrono::duration<double> turn_max = std::chrono::system_clock::duration::min();
@@ -103,6 +103,7 @@ void producer(unsigned *args) {
             break;
         }
     }
+    end_producing = system_clock::now();
 }
 
 unsigned fn(unsigned n) {
@@ -175,7 +176,7 @@ void consumer(unsigned *args) {
             break;
         }
     }
-    pthread_exit(NULL);
+    end_consuming = system_clock::now();
 }
 
 int main(int argc, char* argv[]) {
@@ -235,19 +236,26 @@ int main(int argc, char* argv[]) {
 
     pthread_mutex_destroy(&access_queue);
     pthread_cond_destroy(&full_queue);
-    std::cout << "Products in queue: " << waiting_products.size() << std::endl;
+    std::cout << "Products left in queue: " << waiting_products.size() << std::endl;
     //stop monitoring time
+
     std::chrono::duration<double> diff = system_clock::now() - start_time;
     std::cout << "--------------ANALYSIS---------------" << std::endl;
     std::cout << "Time elapsed: " << diff.count() << "s" << std::endl;
     std::cout << "Turn-around times:" << std::endl
         << "Min = " << turn_min.count() << "s" << std::endl
         << "Max = " << turn_max.count() << "s" << std::endl
-        << "Average = " << turn_total.count()/num_products << "s" << std::endl;
+        << "Average = " << turn_total.count()/num_products << "s per product" << std::endl;
     std::cout << "Wait times:" << std::endl
         << "Min = " << wait_min.count() << "s" << std::endl
         << "Max = " << wait_max.count() << "s" << std::endl
-        << "Average = " << wait_total.count()/num_products << "s" << std::endl;
-    std::cout << "Producer throughput: " << (double)(num_produced * 60 / diff.count()) << std::endl;
-    std::cout << "Consumer throughput: " << (double)(num_consumed * 60 / diff.count()) << std::endl;
+        << "Average = " << wait_total.count()/num_products << "s per product" << std::endl;
+    std::cout << "Producer throughput: "
+        << ((double)num_produced * 1000 * 1000 * 1000 * 60) /
+            std::chrono::duration_cast<std::chrono::nanoseconds>(end_producing - start_time).count()
+        << " products produced per minute" << std::endl;
+    std::cout << "Consumer throughput: "
+        << ((double)num_consumed * 1000 * 1000 * 1000 * 60) /
+            std::chrono::duration_cast<std::chrono::nanoseconds>(end_consuming - start_time).count()
+        << " products consumed per minute" << std::endl;
 }
