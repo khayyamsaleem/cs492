@@ -20,6 +20,9 @@ std::queue<Product*> waiting_products;
 int num_produced, num_consumed;
 pthread_cond_t full_queue, queue_not_full;
 system_clock::time_point start_time;
+std::chrono::duration<double> min = std::chrono::system_clock::duration::max();
+std::chrono::duration<double> max = std::chrono::system_clock::duration::min();
+std::chrono::duration<double> total = std::chrono::system_clock::duration::zero();
 Color::Modifier red(Color::FG_RED);
 Color::Modifier def(Color::FG_DEFAULT);
 Color::Modifier green(Color::FG_GREEN);
@@ -37,7 +40,17 @@ const char* usage() {
 			"        p7: Seed for random number generator";
 }
 
-
+void analysis(Product *p){ //Function to calculate things required for Analysis
+	std::chrono::duration<double> diff = system_clock::now() - p->timestamp;
+	total += diff;
+	if(diff < min){
+		min = diff;
+	}
+	if(diff > max){
+		max = diff;
+	}
+	std::cout << "Time elapsed for id=" << p->product_id << ": " << diff.count() << "s" << std::endl;
+}
 
 void *producer(void *args) {
 	//getting id for producer
@@ -103,6 +116,7 @@ void *consumer(void *args) {
 			std::ostringstream os;
 			os << red << "Consumer " << my_id << " consumed " << blue << *p << def << std::endl;
 			std::cout << os.str();
+			analysis(p);
 			usleep(100000);
 		} else if (num_consumed < num_products && s_algo == 1) { //ROUND ROBIN
 		//round robin
@@ -203,6 +217,9 @@ int main(int argc, char* argv[]) {
 	std::cout << "Products in queue: " << waiting_products.size() << std::endl;
 	//stop monitoring time
 	std::chrono::duration<double> diff = system_clock::now() - start_time;
-	std::cout << "Time elapsed: "
-			<< diff.count() << "s" << std::endl;
+	std::cout << "Time elapsed: " << diff.count() << "s" << std::endl;
+	std::cout << "Turn-around times:" << std::endl
+		<< "Min = " << min.count() << "s" << std::endl
+		<< "Max = " << max.count() << "s" << std::endl
+		<< "Average = " << total.count()/num_products << "s" << std::endl;
 }
