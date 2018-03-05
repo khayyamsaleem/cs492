@@ -6,8 +6,7 @@
 #include <chrono>
 
 struct Product {
-<<<<<<< HEAD
-	unsigned product_id;
+    unsigned product_id;
 	std::chrono::system_clock::time_point timestamp, start_time;
 	int life;
     std::chrono::duration<double> wait_time;
@@ -30,7 +29,6 @@ struct Product {
 		os.flush();
 		return os;
 	}
-=======
     //	unsigned producer_id;
     unsigned product_id;
     std::chrono::system_clock::time_point timestamp, start_time;
@@ -52,7 +50,6 @@ struct Product {
         os.flush();
         return os;
     }
->>>>>>> dd8efbeacd200ebbd3d0811c6da16924221ba288
 };
 
 namespace Color {
