@@ -144,6 +144,7 @@ void *consumer(void *args) {
 				std::ostringstream os;
 				os << red << "Consumer " << my_id << " consumed " << blue << *p << def << std::endl;
 				std::cout << os.str();
+				analysis(p);				
 			}
 			pthread_mutex_unlock(&access_queue);
 			usleep(100000);
