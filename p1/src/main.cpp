@@ -20,9 +20,14 @@ std::queue<Product*> waiting_products;
 int num_produced, num_consumed;
 pthread_cond_t full_queue, queue_not_full;
 system_clock::time_point start_time;
-std::chrono::duration<double> min = std::chrono::system_clock::duration::max();
-std::chrono::duration<double> max = std::chrono::system_clock::duration::min();
-std::chrono::duration<double> total = std::chrono::system_clock::duration::zero();
+//Turn-around times
+std::chrono::duration<double> turn_min = std::chrono::system_clock::duration::max();
+std::chrono::duration<double> turn_max = std::chrono::system_clock::duration::min();
+std::chrono::duration<double> turn_total = std::chrono::system_clock::duration::zero();
+//Wait times
+std::chrono::duration<double> wait_min = std::chrono::system_clock::duration::max();
+std::chrono::duration<double> wait_max = std::chrono::system_clock::duration::min();
+std::chrono::duration<double> wait_total = std::chrono::system_clock::duration::zero();
 Color::Modifier red(Color::FG_RED);
 Color::Modifier def(Color::FG_DEFAULT);
 Color::Modifier green(Color::FG_GREEN);
@@ -41,15 +46,25 @@ const char* usage() {
 }
 
 void analysis(Product *p){ //Function to calculate things required for Analysis
-	std::chrono::duration<double> diff = system_clock::now() - p->timestamp;
-	total += diff;
-	if(diff < min){
-		min = diff;
+	//Turn-around time calculations
+	std::chrono::duration<double> turn_diff = system_clock::now() - p->timestamp;
+	turn_total += turn_diff;
+	if (turn_diff < turn_min)  {
+		turn_min = turn_diff;
 	}
-	if(diff > max){
-		max = diff;
+	if (turn_diff > turn_max) {
+		turn_max = turn_diff;
 	}
-	std::cout << "Time elapsed for id=" << p->product_id << ": " << diff.count() << "s" << std::endl;
+	//Wait time calculations
+	std::chrono::duration<double> wait_diff = p->wait_time;
+	wait_total += wait_diff;
+	if (wait_diff < wait_min) {
+		wait_min = wait_diff;
+	}
+	if (wait_diff > wait_max) {
+		wait_max = wait_diff;
+	}
+	std::cout << "Time elapsed for id=" << p->product_id << ": " << turn_diff.count() << "s" << std::endl;
 }
 
 void *producer(void *args) {
@@ -67,7 +82,7 @@ void *producer(void *args) {
 		//only create products if we have to
 		if (num_produced < num_products) {
 			//use product constructor
-			Product *p = new Product(num_produced++, system_clock::now(), start_time, rand());
+			Product *p = new Product(num_produced++, system_clock::now(), start_time, rand(), std::chrono::system_clock::duration::zero());
 			waiting_products.push(p);
 			//std::cout << "push " << p << "\n";
 			//print product details
@@ -107,6 +122,8 @@ void *consumer(void *args) {
 		//std::cout << "popped " << *p << "\n";
 		if (num_consumed < num_products && s_algo == 0) { //FCFS
 			waiting_products.pop();
+			//Calculate wait time
+			p->wait_time = system_clock::now() - p->timestamp;
 			++num_consumed;
 			//let producers know that there's space
 			pthread_cond_broadcast(&full_queue);
@@ -124,6 +141,9 @@ void *consumer(void *args) {
 		//and put the product back in the queue
 		// "taking a bite"
 			waiting_products.pop();
+			//Calculate wait time
+			std::chrono::system_clock::time_point exit_time = system_clock::now();
+			p->wait_time = exit_time - p->timestamp;
 			if (p->life >= quantum) {
 				//reducing life
 				p->life -= quantum;
@@ -131,6 +151,7 @@ void *consumer(void *args) {
 				for (int i = 0; i < quantum; ++i) fn(10);
 				//reinsert product in queue
 				waiting_products.push(p);
+
 				//inform ONLY consumers that the product is back in the queue
 				pthread_cond_broadcast(&queue_not_full);
 			} else {
@@ -144,7 +165,7 @@ void *consumer(void *args) {
 				std::ostringstream os;
 				os << red << "Consumer " << my_id << " consumed " << blue << *p << def << std::endl;
 				std::cout << os.str();
-				analysis(p);				
+				analysis(p);			
 			}
 			pthread_mutex_unlock(&access_queue);
 			usleep(100000);
@@ -218,9 +239,16 @@ int main(int argc, char* argv[]) {
 	std::cout << "Products in queue: " << waiting_products.size() << std::endl;
 	//stop monitoring time
 	std::chrono::duration<double> diff = system_clock::now() - start_time;
+	std::cout << "--------------ANALYSIS---------------" << std::endl;
 	std::cout << "Time elapsed: " << diff.count() << "s" << std::endl;
 	std::cout << "Turn-around times:" << std::endl
-		<< "Min = " << min.count() << "s" << std::endl
-		<< "Max = " << max.count() << "s" << std::endl
-		<< "Average = " << total.count()/num_products << "s" << std::endl;
+		<< "Min = " << turn_min.count() << "s" << std::endl
+		<< "Max = " << turn_max.count() << "s" << std::endl
+		<< "Average = " << turn_total.count()/num_products << "s" << std::endl;
+	std::cout << "Wait times:" << std::endl
+		<< "Min = " << wait_min.count() << "s" << std::endl
+		<< "Max = " << wait_max.count() << "s" << std::endl
+		<< "Average = " << wait_total.count()/num_products << "s" << std::endl;
+	std::cout << "Producer throughput: " << (double)(num_produced * 60 / diff.count()) << std::endl;
+	std::cout << "Consumer throughput: " << (double)(num_consumed * 60 / diff.count()) << std::endl;
 }

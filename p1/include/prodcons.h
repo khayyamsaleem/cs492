@@ -6,19 +6,21 @@
 #include <chrono>
 
 struct Product {
-//	unsigned producer_id;
 	unsigned product_id;
 	std::chrono::system_clock::time_point timestamp, start_time;
 	int life;
+    std::chrono::duration<double> wait_time;
 	explicit Product(
 			const unsigned _product_id,
 			const std::chrono::system_clock::time_point _timestamp,
 			const std::chrono::system_clock::time_point _start_time,
-			const int _life) {
+			const int _life,
+            const std::chrono::duration<double> _wait_time) {
 		start_time = _start_time;
 		product_id = _product_id;
 		timestamp = _timestamp;
 		life = _life % 1024;
+        wait_time = _wait_time;
 	}
 	friend std::ostream& operator<<(std::ostream& os, const Product &prod) {
 		os << "Product " << "[id=" << prod.product_id << ", timestamp="
