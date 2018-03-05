@@ -64,7 +64,7 @@ void analysis(Product *p){ //Function to calculate things required for Analysis
     if (wait_diff > wait_max) {
         wait_max = wait_diff;
     }
-//    std::cout << "Time elapsed for id=" << p->product_id << ": " << turn_diff.count() << "s" << std::endl;
+    //    std::cout << "Time elapsed for id=" << p->product_id << ": " << turn_diff.count() << "s" << std::endl;
 }
 
 void producer(unsigned *args) {
