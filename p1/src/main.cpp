@@ -82,7 +82,7 @@ void producer(unsigned *args) {
         //only create products if we have to
         if (num_produced < num_products) {
             //use product constructor
-            Product *p = new Product(num_produced++, system_clock::now(), start_time, rand());
+            Product *p = new Product(num_produced++, start_time);
             waiting_products.push(p);
             //std::cout << "push " << p << "\n";
             //print product details

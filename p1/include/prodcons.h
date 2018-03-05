@@ -12,13 +12,12 @@ struct Product {
     std::chrono::duration<double> wait_time;
     explicit Product(
             const unsigned _product_id,
-            const std::chrono::system_clock::time_point _timestamp,
-            const std::chrono::system_clock::time_point _start_time,
-            const int _life) {
+            const std::chrono::system_clock::time_point _start_time
+            ) {
         start_time = _start_time;
         product_id = _product_id;
-        timestamp = _timestamp;
-        life = _life % 1024;
+        timestamp = std::chrono::system_clock::now();
+        life = rand() % 1024;
         wait_time = std::chrono::system_clock::duration::zero();
         last_update = timestamp;
     }
