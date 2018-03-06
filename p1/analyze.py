@@ -1,11 +1,14 @@
+#Khayyam Saleem and Faris Ibrahim
+#ksaleem@stevens.edu and fibrahim@stevens.edu
+
 import os
 from random import randint
 
 
 ##--------------------------FIRST COME FIRST SERVE-----------------------------------
 num_products = 100
-num_producers = [5,5,10]
-num_consumers = [5,10,5]
+num_producers = [5,5,50]
+num_consumers = [5,50,5]
 prod_cons = zip(num_producers, num_consumers)
 queue_size = [10, 50, 0]
 
@@ -31,8 +34,8 @@ for p,c in prod_cons:
             os.system(run_str)
 
 #call for 5000 products
-num_producers = [50,50,100]
-num_consumers = [50,100,50]
+num_producers = [50,50,1000]
+num_consumers = [50,1000,50]
 prod_cons = zip(num_producers, num_consumers)
 queue_size = [100,1000,0]
 for p,c in prod_cons:
@@ -45,8 +48,8 @@ for p,c in prod_cons:
 ##-------------------------------ROUND ROBIN------------------------------
 
 num_products = 100
-num_producers = [5,5,10]
-num_consumers = [5,10,5]
+num_producers = [5,5,50]
+num_consumers = [5,50,5]
 prod_cons = zip(num_producers, num_consumers)
 queue_size = [10,50,0]
 quantum = [100, 512, 900]
@@ -62,8 +65,8 @@ for p,c in prod_cons:
                 os.system(run_str)
 
 # call for 5000 products
-num_producers = [50,50,100]
-num_consumers = [50,100,50]
+num_producers = [50,50,1000]
+num_consumers = [50,1000,50]
 prod_cons = zip(num_producers, num_consumers)
 queue_size = [100, 1000, 0]
 for p,c in prod_cons:

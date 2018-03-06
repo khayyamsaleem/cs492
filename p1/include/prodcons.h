@@ -1,3 +1,5 @@
+//Khayyam Saleem and Faris Ibrahim
+//ksaleem@stevens.edu and fibrahim@stevens.edu
 #ifndef PRODCONS_INCLUDE
 #define PRODCONS_INCLUDE
 

@@ -1,3 +1,6 @@
+//Khayyam Saleem and Faris Ibrahim
+//ksaleem@stevens.edu, fibrahim@stevens.edu
+//We pledge our honor that we have abided by the Stevens Honor System.
 #include <iostream>
 #include <cstdlib>
 #include <string>
