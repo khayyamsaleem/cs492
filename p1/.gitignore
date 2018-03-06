@@ -34,3 +34,5 @@ prodcons
 *.exe
 *.out
 *.app
+
+*.csv
