@@ -239,6 +239,7 @@ int main(int argc, char* argv[]) {
 
     pthread_mutex_destroy(&access_queue);
     pthread_cond_destroy(&full_queue);
+    pthread_cond_destroy(&queue_not_full);
     std::cout << "Products left in queue: " << waiting_products.size() << std::endl;
     //stop monitoring time
 
