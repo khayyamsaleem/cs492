@@ -6,3 +6,4 @@ VMsimulator: src/vmsim.cpp
 clean:
 	$(RM) VMsimulator
 	$(RM) -r *.dSYM
+	$(RM) *.out
