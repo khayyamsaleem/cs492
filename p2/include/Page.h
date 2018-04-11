@@ -1,5 +1,6 @@
 #ifndef PAGE_H
 #define PAGE_H
+#include <sstream>
 
 struct Page {
     unsigned long page_no;
@@ -13,6 +14,16 @@ struct Page {
         valid = false;
         r_bit = false;
         last_accessed = 0;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Page &p){
+        os << "Page [ page_no=" << p.page_no <<
+                     ", valid=" << p.valid <<
+                         ", R=" << p.r_bit <<
+             ", last_accessed=" << p.last_accessed <<
+             " ]";
+        os.flush();
+        return os;
     }
 
     /* sets valid to true, toggles r_bit on, updates time last accessed */

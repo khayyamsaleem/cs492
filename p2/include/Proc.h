@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include "Page.h"
 
 struct Proc {
@@ -16,6 +17,12 @@ struct Proc {
         mem = 0;
         time_ind = 0;
     };
+
+    friend std::ostream& operator<<(std::ostream& os, const Proc &p){
+        os << "Process [ pid=" << p.pid << ", mem=" << p.mem << " ]";
+        os.flush();
+        return os;
+    }
 
     void replace_FIFO(int ind){
         unsigned remove_ind = indices.front();
@@ -48,7 +55,16 @@ struct Proc {
     }
 
     void replace_CLOCK(int ind){
-        ind += 1;
+        while(table[indices[time_ind]]->r_bit){
+            table[indices[time_ind]]->r_bit = false;
+            time_ind = (time_ind + 1) % indices.size();
+        }
+        table[indices[time_ind]]->valid = false;
+        table[ind]->valid = true;
+        table[ind]->r_bit = true;
+
+        indices[time_ind] = ind;
+        time_ind = (time_ind + 1) % indices.size();
     };
 
     /* used for pre-paging */
