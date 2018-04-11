@@ -185,6 +185,7 @@ int main(int argc, char **argv){
         }
     }
     std::cout << "Number of Page replacements: " << replacements << std::endl;
+    std::cout << "Number of Memory accesses: " << num_accesses << std::endl;
     std::exit(0);
 
 
