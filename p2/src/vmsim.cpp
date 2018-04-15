@@ -55,8 +55,8 @@ int main(int argc, char **argv){
     }
 
     if (std::atoi(argv[3]) <= 0 ||
-        std::atoi(argv[3]) > 32 ||
-        !((std::atoi(argv[3]) & (std::atoi(argv[3]) -1)) == 0)){
+            std::atoi(argv[3]) > 32 ||
+            !((std::atoi(argv[3]) & (std::atoi(argv[3]) -1)) == 0)){
         std::cerr << std::atoi(argv[3]) << " invalid as page size." << std::endl;
         std::cout << usage() << std::endl;
         std::exit(1);
