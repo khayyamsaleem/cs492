@@ -6,7 +6,7 @@ from random import randint
 
 algorithm = ["FIFO", "LRU", "CLOCK"] #Algorithm
 sign = ["+", "-"] #Prepaging
-page_size = [1, 2, 4, 8, 16]
+page_size = [1, 2, 4, 8, 16, 32]
 
 for alg in algorithm:
     for s in sign:
