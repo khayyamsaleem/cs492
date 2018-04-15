@@ -16,6 +16,7 @@ struct Page {
         last_accessed = 0;
     }
 
+    /* prints a page */
     friend std::ostream& operator<<(std::ostream& os, const Page &p){
         os << "Page [ page_no=" << p.page_no <<
                      ", valid=" << p.valid <<
