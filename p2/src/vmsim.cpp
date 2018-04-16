@@ -132,7 +132,7 @@ int main(int argc, char **argv){
 
     /* read from ptrace */
     unsigned long num_accesses = 0;
-    unsigned replacements = 0;
+    unsigned long replacements = 0;
     while(std::getline(f_ptrace, line)){
         if (line.size() != 0){
             ++num_accesses;
@@ -145,7 +145,7 @@ int main(int argc, char **argv){
 
             /* fetch process page table */
             int table_ind = -1;
-            unsigned i;
+            unsigned long i;
             for (i = 0; i < programs.size() && programs[i]->pid != process; ++i);
             table_ind = (i == programs.size()) ? -1 : i;
 
