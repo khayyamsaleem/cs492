@@ -1,0 +1,7 @@
+.
+./include
+./filesystem.dSYM
+./filesystem.dSYM/Contents
+./filesystem.dSYM/Contents/Resources
+./filesystem.dSYM/Contents/Resources/DWARF
+./src
