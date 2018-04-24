@@ -1,6 +1,8 @@
-CXXFLAGS += -I include -O2 -g -std=c++11
+CXXFLAGS += -I include -g -Wall -std=c++11
 
 NAME = filesystem
+
+all: $(NAME)
 
 $(NAME): src/fs.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $^

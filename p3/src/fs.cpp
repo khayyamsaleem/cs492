@@ -35,8 +35,42 @@ int main(int argc, char* argv[]){
         }
     }
 
-    /* get info out of file_list */
+    /* initial timestamp */
+    auto init_t = std::chrono::system_clock::now();
+
+    hdt *G = nullptr;
+    /* get info out of dir_list */
+    std::ifstream f_dirs(info_on_directories);
     std::string line;
+    std::vector<std::string> directories;
+    unsigned lc = 0;
+    if(f_dirs.good()){
+        while(std::getline(f_dirs, line)){
+        	if (line.empty()) continue;
+        	if(lc == 0){
+        		File *f = new File(0, line.substr(0, line.find_last_of("/")),init_t, DIR_T);
+//        		std::cout << *f << std::endl;
+        		G = new hdt(f);
+//        		std::cout << *G << std::endl;
+        	} else {
+        		File *f = new File(0, line, init_t, DIR_T);
+//        		std::cout << *f << std::endl;
+//        		hdt* parent = G->find(line.substr(0,line.find_last_of("/")));
+//        		hdt* child = new hdt(f);
+//        		parent->addChild(child);
+        		G->insert_node(f);
+//        		std::cout << *G << std::endl;
+        	}
+        	lc++;
+        }
+    } else {
+        std::cerr << "Invalid file for dir list." << std::endl;
+        std::exit(1);
+    }
+
+//    std::cout << "FUCK" << std::endl;
+
+    /* get info out of file_list */
     std::ifstream f_files(info_on_files);
     std::vector<File> files;
     if (f_files.good()){
@@ -52,8 +86,14 @@ int main(int argc, char* argv[]){
                 // std::cout << "size in bytes: " << size_in_bytes << std::endl;
                 // std::cout << "file path: " << f_path << std::endl;
                 // std::cout << "time stamp: " << ts.str() << std::endl;
-                File f{size_in_bytes, f_path, std::chrono::system_clock::now()};
-                files.push_back(f);
+                File *f = new File(size_in_bytes, f_path, init_t, FILE_T);
+//                std::cout << *f << std::endl;
+//                hdt* parent = G->find(f_path.substr(0,f_path.find_last_of("/")));
+//                std::cout << "PARENT: " << *parent << std::endl;
+//                hdt* child = new hdt(f);
+//                parent->addChild(child);
+//                std::cout << *G << std::endl;
+                G->insert_node(f);
             } else {
                 std::cerr << "Unexpected format for file list." << std::endl;
                 std::exit(1);
@@ -63,37 +103,27 @@ int main(int argc, char* argv[]){
         std::cerr << "Invalid file for file list." << std::endl;
         std::exit(1);
     }
-    for (auto it = files.begin(); it != files.end(); ++it)
-      std::cout << *it << std::endl;
+    // for (auto it = files.begin(); it != files.end(); ++it)
+    //   std::cout << *it << std::endl;
 
-    /* get info out of dir_list */
-    std::ifstream f_dirs(info_on_directories);
-    std::vector<std::string> directories;
-    if(f_dirs.good()){
-        while(std::getline(f_dirs, line)){
-            if (line.empty()) continue;
-            directories.push_back(line);
-        }
-    } else {
-        std::cerr << "Invalid file for dir list." << std::endl;
-        std::exit(1);
-    }
+    //NUT I SUCCESSFULLY POPULATED THE TREE
+    //std::cout << *G << std::endl;
 
     /* testing ldisk behavior */
-    ldisk l;
-    disk_node d {1, 5, true};
-    l.add(d);
-    disk_node f {6, 10, false};
-    l.add(f);
-    disk_node h {11, 16, false};
-    l.add(h);
-    disk_node i {17, 23, false};
-    l.add(i);
-    disk_node k {24, 32, true};
-    l.add(k);
-    std::cout << l << std::endl;
-    l.merge();
-    std::cout << l << std::endl;
+    // ldisk l;
+    // disk_node d {1, 5, true};
+    // disk_node f {6, 10, false};
+    // disk_node h {11, 16, false};
+    // disk_node i {17, 23, false};
+    // disk_node k {24, 32, true};
+    // l.add(d);
+    // l.add(f);
+    // l.add(h);
+    // l.add(i);
+    // l.add(k);
+    // std::cout << l << std::endl;
+    // l.merge();
+    // std::cout << l << std::endl;
 
 
     std::exit(0);

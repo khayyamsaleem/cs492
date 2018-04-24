@@ -4,4 +4,5 @@
 ./filesystem.dSYM/Contents
 ./filesystem.dSYM/Contents/Resources
 ./filesystem.dSYM/Contents/Resources/DWARF
+./.settings
 ./src

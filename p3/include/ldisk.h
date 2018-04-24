@@ -33,8 +33,12 @@ struct disk_node {
 
     friend std::ostream& operator<<(std::ostream& os, disk_node &d){
         os << "d_node [ range=(" << d.get_block_ids().first << "," <<
-                                    d.get_block_ids().second <<
-                                    ") free=" << d.is_used() << " ]";
+                                    d.get_block_ids().second << "), ";
+        if (d.used)
+            os << "used";
+        else
+            os << "free";
+        os << " ]";
         return os;
     }
 };

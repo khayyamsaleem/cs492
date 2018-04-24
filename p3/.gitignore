@@ -1,3 +1,6 @@
 filesystem
 *.dSYM
 *.out
+.cproject
+.settings
+.project
