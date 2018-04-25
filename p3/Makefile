@@ -2,10 +2,8 @@ CXXFLAGS += -I include -g -Wall -std=c++11
 
 NAME = filesystem
 
-all: $(NAME)
-
-$(NAME): src/fs.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $^
+$(NAME): src/fs.cpp $(wildcard include/*.h)
+	$(CXX) $(CXXFLAGS) -o $@ $<
 
 clean:
 	$(RM) $(NAME)

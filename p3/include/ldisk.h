@@ -2,12 +2,21 @@
 
 #include <sstream>
 #include <utility>
+#include <math.h>
 
 struct disk_node {
 	unsigned block_start;
 	unsigned block_end;
 	bool used;
 	disk_node * next;
+
+	disk_node* find_first_free(){
+		for(disk_node* cur = this; cur; cur = cur->next){
+			if(!cur->is_used())
+				return cur;
+		}
+		return nullptr;
+	}
 
 	disk_node(unsigned s, unsigned e, bool used, disk_node * next) {
 		this->block_start = s;
@@ -44,18 +53,39 @@ struct disk_node {
 };
 
 struct ldisk {
-	disk_node * head = nullptr;
+	disk_node * head;
 
-	bool add(disk_node &n) {
+	ldisk(){
+		this->head = nullptr;
+	}
+
+	bool add(disk_node *n) {
 		if (head == nullptr) {
-			head = &n;
+			head = n;
 		} else {
 			disk_node * cur = this->head;
 			while (cur->next != nullptr)
 				cur = cur->next;
-			cur->next = &n;
+			cur->next = n;
 		}
+		this->merge();
 		return true;
+	}
+
+	bool insert_at(disk_node* pos, disk_node* ins){
+		if (pos == this->head){
+			this->head = new disk_node(ins->block_start, ins->block_end, ins->used, this->head);
+			return true;
+		}
+		disk_node* prev = nullptr;
+		for(disk_node* cur = this->head; cur; cur = cur->next){
+			if(cur == pos){
+				prev->next = new disk_node(ins->block_start, ins->block_end, ins->used, cur);
+				return true;
+			}
+			prev = cur;
+		}
+		return false;
 	}
 
 	void merge() {
@@ -71,11 +101,53 @@ struct ldisk {
 		}
 	}
 
+
+	void split(unsigned cut_point){
+		disk_node* cur = this->head;
+		disk_node* prev = nullptr;
+		while(cur){
+			if (cur->block_start <= cut_point && cur->block_end >= cut_point){
+				if (cur == this->head){
+					this->head = new disk_node(0,cut_point,this->head->used, this->head);
+					this->head->next->block_start=cut_point+1;
+//					this->merge();
+					return;
+				} else {
+					prev->next = new disk_node(cur->block_start, cut_point, cur->used, cur);
+					cur->block_start=cut_point+1;
+//					this->merge();
+					return;
+				}
+			}
+			prev = cur;
+			cur = cur->next;
+		}
+	}
+
+	void use_block_ids(unsigned start, unsigned end){
+		this->split(start-1);
+		this->split(end);
+		disk_node *cur = this->head;
+		while(cur->block_start != start)
+			cur = cur->next;
+		cur->used = true;
+	}
+
+	void free_block_ids(unsigned start, unsigned end){
+		this->split(start-1);
+		this->split(end);
+		disk_node *cur = this->head;
+		while(cur->block_start != start)
+			cur = cur->next;
+		cur->used = false;
+	}
+
 	friend std::ostream& operator<<(std::ostream& os, const ldisk &l) {
+		disk_node *cur;
 		os << "ldisk { ";
-		for (disk_node * cur = l.head; cur != nullptr; cur = cur->next)
+		for (cur = l.head; cur -> next ; cur = cur->next)
 			os << *cur << ", ";
-		os << "\b\b }";
+		os << *cur <<" }";
 		return os;
 	}
 };
