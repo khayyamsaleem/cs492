@@ -5,8 +5,8 @@
 #include <queue>
 #include <string>
 #include <vector>
-
-#include "file.h"
+#include <colors.h>
+#include <file.h>
 
 struct hdt {
 	File *data; /* file in node */
@@ -55,11 +55,11 @@ struct hdt {
 
 	/* performs a breadth-first traversal of a hierarchical directory tree */
 	friend std::ostream& operator<<(std::ostream& os, hdt &t) {
-		os << "TREE {" << std::endl;
+		os << red << bold_on << "TREE {" << def << std::endl;
 		hdt* cur = &t;
 		std::queue<hdt*> q;
 		while (cur) {
-			os << "\t" << *(cur->data);
+			os << "\t"<<*(cur->data);
 			for (auto it = cur->children.begin(); it != cur->children.end();
 					++it)
 				q.push(*it);
@@ -71,7 +71,7 @@ struct hdt {
 			}
 			os << std::endl;
 		}
-		os << "}";
+		os << red << bold_on << "}" << bold_off << def;
 		return os;
 	}
 };

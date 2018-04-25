@@ -11,6 +11,8 @@
 #include <fstream>
 #include <math.h>
 
+
+/* displays valid commands */
 const char* valid_commands(){
 	 return "Valid commands:\n"
 	 "\tcd [directory] - set specified directory as the current directory\n"
@@ -27,7 +29,7 @@ const char* valid_commands(){
 	 "\tprdisk - print out disk space information";
 }
 
-
+/* splits string by spaces */
 std::vector<std::string> tokenize(std::string s, std::string delim){
 	std::string buf;
 	std::stringstream ss(s);
@@ -138,58 +140,109 @@ int main(int argc, char* argv[]) {
 
 	/* starting repl */
 	hdt *cwd = G;
-	std::cout << cwd->data->file_path << " >>>  ";
+	std::cout << cwd->data->file_path << " >>> ";
 	std::cout.flush();
-//	std::cout << "here" << std::endl;
 	while (std::getline(std::cin, line)){
-		/* skip if mans just passed a newline or something */
 		std::vector<std::string> tokens = tokenize(line, " ");
-//		if () continue;
 
-		/* all commands without arguments */
+		/* commands without arguments */
 		if(tokens.size()==1){
 			std::string cmd = tokens[0];
+
+
+			/************ cd.. **********/
 			if (cmd == "cd.."){
 				if (cwd == G){
 					std::cout << "Already at root!" << std::endl;
 				} else {
 					cwd = cwd->parent;
 				}
+
+
+
+
+			/************ ls **********/
 			} else if (cmd == "ls"){
 				for (auto it = cwd->children.begin(); it != cwd->children.end(); ++it)
-					std::cout << (*it)->data->file_name << std::endl;
+					std::cout << *((*it)->data) << std::endl;
+
+
+
+			/************ exit **********/
 			} else if (cmd == "exit") {
 				std::cout << "Bye!" << std::endl;
 				delete G;
 				delete block_sets;
 				std::exit(0);
+
+
+
+			/************ dir **********/
 			} else if (cmd == "dir"){
 				std::cout << *G << std::endl;
+
+
+
+			/************ prdisk **********/
 			} else if (cmd == "prdisk") {
 				// TODO: print out all disk space information
+
+
+
+			/************ prfiles **********/
 			} else if (cmd == "prfiles") {
 				//TODO: print out all file information
 			} else {
 				std::cerr << "Invalid command!" << std::endl;
 				std::cout << valid_commands() << std::endl;
 			}
-		} else if (tokens.size() == 2){ /* commands with one argument */
+
+
+
+
+		/* commands with one argument */
+		} else if (tokens.size() == 2){
 			std::string cmd = tokens[0];
 			std::string arg = tokens[1];
+
+
+			/************ cd **********/
 			if (cmd == "cd"){
-				for(auto it = cwd->children.begin(); it != cwd->children.end(); ++it){
-					if ((*it)->data->file_name == arg){
-						if ((*it)->data->type==DIR_T){
-							cwd = *it;
-						} else {
-							std::cerr << "Not a directory!" << std::endl;
+				/* adding this due to force of habit, don't @ me */
+				if (arg == ".."){
+					if (cwd == G){
+						std::cout << "Already at root!" << std::endl;
+					} else {
+						cwd = cwd->parent;
+					}
+				} else {
+					bool found = false;
+					for(auto it = cwd->children.begin(); it != cwd->children.end(); ++it){
+						if ((*it)->data->file_name == arg){
+							found = true;
+							if ((*it)->data->type==DIR_T){
+								cwd = *it;
+							} else {
+								std::cerr << "Not a directory!" << std::endl;
+							}
+							break;
 						}
 					}
+					if (!found)
+						std::cerr << "Directory not found!" << std::endl;
 				}
-				std::cerr << "Directory not found!" << std::endl;
+
+
+
+			/************ mkdir **********/
 			} else if (cmd == "mkdir") {
 				File *f = new File(0, cwd->data->file_path+"/"+arg, std::chrono::system_clock::now(), DIR_T);
 				G->insert_node(f);
+
+
+
+
+			/************ create **********/
 			} else if (cmd == "create") {
 				File *f = new File(0, cwd->data->file_path+"/"+arg, std::chrono::system_clock::now(), FILE_T);
 				G->insert_node(f); //TODO: perform memory allocation
@@ -205,30 +258,56 @@ int main(int argc, char* argv[]) {
 					children->erase(std::remove_if(children->begin(), children->end(), [&](hdt* x){
 						return x == to_delete;
 					}));
-					//TODO: perform memory deallocation
+					//TODO: perform memory deallocation on ldisk
 				}
 			} else {
 				std::cerr << "Invalid command!" << std::endl;
 				std::cout << valid_commands() << std::endl;
 			}
-		} else if (tokens.size() == 3) { /* commands with two arguments */
+
+
+
+
+		/* commands with two arguments */
+		} else if (tokens.size() == 3) {
 			std::string cmd = tokens[0];
 			std::string fname = tokens[1];
 			double bytes = std::stod(tokens[2]);
 			(void)bytes; //silence "unused" warning for now
+
+
+
+			/************ append **********/
 			if (cmd == "append"){
 				//TODO: append bytes to given file, make sure it's a file and not a directory
+
+
+
+
+
+			/************ remove **********/
 			} else if (cmd == "remove"){
 				//TODO: remove bytes from given file, make sure it's a file and not a directory
+
+
+
+			} else {
+				std::cerr << "Invalid command!" << std::endl;
+				std::cout << valid_commands() << std::endl;
 			}
+
+
+		/* skip if mans just passed a newline or something */
 		} else if (line.empty() || tokens.empty()) {
-			// nothing
-		} else { /* commands can only by 1, 2, or 3 tokens long */
+			;
+
+		/* commands can only by 1, 2, or 3 tokens long */
+		} else {
 			std::cerr << "Invalid command!" << std::endl;
 			std::cout << valid_commands() << std::endl;
 		}
 
-		std::cout << cwd->data->file_path << " >>>  ";
+		std::cout << cwd->data->file_path << " >>> ";
 		std::cout.flush();
 	}
 }

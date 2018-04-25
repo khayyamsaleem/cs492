@@ -5,11 +5,13 @@
 #include <iostream>
 #include <string>
 #include <lfile.h>
+#include <colors.h>
 
 /* since files and directories are both files */
 enum kind {
 	DIR_T, FILE_T
 };
+
 
 /* represents a single file or directory */
 struct File {
@@ -33,7 +35,7 @@ struct File {
 		if (file_path.find_last_of("/") == std::string::npos)
 			this->file_name = file_path;
 		else
-			this->file_name = file_path.substr(file_path.find_last_of("/"), std::string::npos);
+			this->file_name = file_path.substr(file_path.find_last_of("/")+1, std::string::npos);
 	}
 
 	/* returns file size in bytes */
@@ -62,14 +64,22 @@ struct File {
 				f.get_time_stamp());
 		std::string time_string = std::ctime(&t);
 		time_string = time_string.substr(0, time_string.length() - 1);
-		if (f.type == DIR_T)
-			os << "DIR ";
-		else
-			os << "FILE";
-		os << " [ size=" << f.get_size() << ";" << std::endl <<
-				"\t       path=\"" << f.get_path() << "\";" << std::endl <<
-				"\t       name=\""<< f.get_name() <<"\"" << std::endl <<
-				"\t     ]";
+		if (f.type == DIR_T){
+			os << blue << bold_on << "DIR " << bold_off << blue;
+			os << " [ "<<
+					bold_on << "name=\"" << f.get_name() <<  "\"" << bold_off << blue <<"; " <<
+					"full_path=\"" << f.get_path() << "\"" <<
+					" ]";
+			os << def;
+		} else {
+			os << green << bold_on << "FILE" << bold_off << green;
+			os << " [ "<<
+					bold_on << "name=\"" << f.get_name() << "\"" << bold_off << green << "; " <<
+					"size=" << f.get_size() << "; "  <<
+					"full_path=\"" << f.get_path() << "\"" <<
+					" ]";
+			os << def;
+		}
 		return os;
 	}
 
