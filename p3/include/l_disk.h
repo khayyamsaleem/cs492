@@ -20,7 +20,7 @@ struct l_disk {
 		this->num_blocks = disk_size / block_size;
 		this->blocks.reserve(num_blocks);
 		this->blocks.resize(num_blocks);
-		for(int i = 0; i < this->blocks.size(); i++){
+		for(unsigned i = 0; i < this->blocks.size(); i++){
 			this->blocks.at(i) = false;
 		}
 	}
@@ -33,8 +33,8 @@ struct l_disk {
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, l_disk &disk) {
-		int rel = 0;
-		for (int i = 0; i < disk.num_blocks; i++) {
+		unsigned rel = 0;
+		for (unsigned i = 0; i < disk.num_blocks; i++) {
 			std::string status = disk.blocks.at(i) ? "USED: " : "FREE: ";
 			if (i == disk.num_blocks - 1) {
 				if (rel == i)
