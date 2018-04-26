@@ -1,7 +1,0 @@
-8616712182        0 -rw-r--r--    1 khayyamsaleem    staff                   0 Apr 24 18:48 ./file_list.txt
-8616637648       16 -rw-r--r--    1 khayyamsaleem    staff                  16 Apr 24 18:43 ./a.txt
-8616637648       16 -rw-r--r--    1 khayyamsaleem    staff                  18 Apr 24 18:43 ./b.txt
-8616637648       16 -rw-r--r--    1 khayyamsaleem    staff                   4 Apr 24 18:43 ./dir1/c.txt
-8616637648       16 -rw-r--r--    1 khayyamsaleem    staff                  10 Apr 24 18:43 ./dir1/d.txt
-8616637648       16 -rw-r--r--    1 khayyamsaleem    staff                   6 Apr 24 18:43 ./dir2/e.txt
-8616637648       16 -rw-r--r--    1 khayyamsaleem    staff                  30 Apr 24 18:43 ./dir2/f.txt

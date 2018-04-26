@@ -1,8 +1,8 @@
-.
-./include
-./filesystem.dSYM
-./filesystem.dSYM/Contents
-./filesystem.dSYM/Contents/Resources
-./filesystem.dSYM/Contents/Resources/DWARF
-./.settings
-./src
+./
+./a
+./a/b
+./a/b/c
+./a/b/c/d
+./a/b/c/d/e
+./xyz
+

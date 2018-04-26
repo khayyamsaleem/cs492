@@ -1,7 +1,7 @@
 #include <file.h>
 #include <hdt.h>
-#include <ldisk.h>
-#include <lfile.h>
+#include <l_disk.h>
+//#include <lfile.h>
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
@@ -76,10 +76,8 @@ int main(int argc, char* argv[]) {
 	hdt *G = nullptr;
 
 	/* initialize list of contiguous disk blocks */
-	ldisk *block_sets = new ldisk();
-	block_sets->add(new disk_node(0,ceil(disk_size/(float)block_size) -1,false,nullptr));
+	l_disk *block_sets = new l_disk(disk_size, block_size);
 
-//	std::cout << "here" << std::endl;
 
 	/* get info out of dir_list */
 	std::ifstream f_dirs(info_on_directories);
@@ -92,10 +90,7 @@ int main(int argc, char* argv[]) {
 				continue;
 			if (lc == 0) {
 				/* create root */
-//				std::cout << "there" << std::endl;
-//				std::cout << "line: " << line << std::endl;
-				File *f = new File(0, line.substr(0, line.find_last_of("/")),
-						init_t, DIR_T);
+				File *f = new File(0, line.substr(0, line.find_last_of("/")), init_t, DIR_T);
 				G = new hdt(f);
 			} else {
 				/* add directory to tree */
@@ -109,7 +104,6 @@ int main(int argc, char* argv[]) {
 		std::exit(1);
 	}
 
-//	std::cout << "here" << std::endl;
 	/* get info out of file_list */
 	std::ifstream f_files(info_on_files);
 	std::vector<File> files;
@@ -123,8 +117,33 @@ int main(int argc, char* argv[]) {
 			if (is >> garb >> garb >> garb >> garb >> garb >> garb
 					>> size_in_bytes >> garb >> garb >> garb >> f_path) {
 				/* add file to tree */
-				File *f = new File(size_in_bytes, f_path, init_t, FILE_T);
-				G->insert_node(f);
+
+				//memory allocation work on ldisk for file
+				unsigned blocks_required = ceil((1.0*size_in_bytes) / block_size);
+				unsigned cur_block = 0;
+				std::vector<unsigned> reserved;
+				bool can_add;
+				while(cur_block != block_sets->num_blocks && blocks_required != 0){
+					if(!block_sets->blocks.at(cur_block)){
+						block_sets->blocks.at(cur_block) = true;
+						reserved.push_back(cur_block);
+						--blocks_required;
+					}
+					cur_block++;
+				}
+				can_add = true;
+				if (blocks_required){
+					can_add = false;
+					std::cerr << "NOT ENOUGH SPACE FOR FILE. NOT ADDED." << std::endl;
+					for (unsigned b : reserved) block_sets->blocks.at(b)= false;
+					reserved.clear();
+				}
+				if(can_add){ //only add to tree if there was enough space
+					File *f = new File(size_in_bytes, f_path, init_t, FILE_T);
+					f->lf = reserved;
+					f->remaining = (int)size_in_bytes % (int)block_size;
+					G->insert_node(f);
+				}
 			} else {
 				std::cerr << "Unexpected format for file list." << std::endl;
 				std::exit(1);
@@ -135,8 +154,6 @@ int main(int argc, char* argv[]) {
 		std::exit(1);
 	}
 
-	std::cout << "FULL FILE TREE" << std::endl;
-	std::cout << *G << std::endl;
 
 	/* starting repl */
 	hdt *cwd = G;
@@ -159,13 +176,10 @@ int main(int argc, char* argv[]) {
 				}
 
 
-
-
 			/************ ls **********/
 			} else if (cmd == "ls"){
 				for (auto it = cwd->children.begin(); it != cwd->children.end(); ++it)
 					std::cout << *((*it)->data) << std::endl;
-
 
 
 			/************ exit **********/
@@ -176,27 +190,94 @@ int main(int argc, char* argv[]) {
 				std::exit(0);
 
 
-
 			/************ dir **********/
 			} else if (cmd == "dir"){
 				std::cout << *G << std::endl;
 
 
-
 			/************ prdisk **********/
 			} else if (cmd == "prdisk") {
-				// TODO: print out all disk space information
-
+				std::cout << *block_sets << std::endl;
+				std::cout << "FRAGMENTATION: ";
+				unsigned frag = 0;
+				hdt *cur = G;
+				std::queue<hdt*> q;
+				while (cur) {
+					if(cur->data->type == FILE_T){
+						if (cur->data->remaining){
+							frag += block_size - cur->data->remaining;
+						}
+					}
+					for (auto it = cur->children.begin(); it != cur->children.end(); ++it)
+						q.push(*it);
+					if (q.empty()) cur = nullptr;
+					else {
+						cur = q.front();
+						q.pop();
+					}
+				}
+				std::cout << frag << " BYTES" << std::endl;
 
 
 			/************ prfiles **********/
 			} else if (cmd == "prfiles") {
-				//TODO: print out all file information
+				// find all files in the file tree
+				//print name, size, ts
+				// for each file, iterate over its lfile to yield block addresses
+				hdt *cur = G;
+				std::queue<hdt*> q;
+				while (cur) {
+					if(cur->data->type == FILE_T){
+						std::cout << *(cur->data) << std::endl;
+						//TODO: print out LFILE properly
+						std::cout << "LFILE: ";
+						if (cur->data->lf.size()){
+							int start = cur->data->lf.at(0);
+							for(auto it = cur->data->lf.begin(); it != cur->data->lf.end(); ++it){
+								int block = *it;
+								if (it == cur->data->lf.end()-1){
+									if (block == start){
+										std::cout << "(" << start*block_size << " -> " <<
+												(start*block_size) + block_size << ") ";
+									} else {
+										std::cout << "(" << start*block_size << " -> " <<
+												(block*block_size) + block_size << ") ";
+									}
+								} else if (*(it+1)-block != 1){
+									if (block == start){
+										std::cout << "("<< start*block_size << " -> " <<
+												(start*block_size) + block_size << ") ";
+									} else {
+										std::cout << "("<< start*block_size << " -> " <<
+												(block*block_size) + block_size << ") ";
+									}
+									start = *(it+1);
+								}
+							}
+							std::cout << std::endl;
+						} else {
+							std::cout << "(no blocks allocated)" << std::endl;
+						}
+					}
+					for (auto it = cur->children.begin(); it != cur->children.end(); ++it)
+						q.push(*it);
+					if (q.empty()) cur = nullptr;
+					else {
+						cur = q.front();
+						q.pop();
+					}
+				}
+
+
+			/************ clear, for convenience **********/
+			} else if (cmd == "clear") {
+				std::system("clear");
+
+
 			} else {
 				std::cerr << "Invalid command!" << std::endl;
 				std::cout << valid_commands() << std::endl;
 			}
-
 
 
 
@@ -240,14 +321,16 @@ int main(int argc, char* argv[]) {
 				G->insert_node(f);
 
 
-
-
 			/************ create **********/
 			} else if (cmd == "create") {
 				File *f = new File(0, cwd->data->file_path+"/"+arg, std::chrono::system_clock::now(), FILE_T);
-				G->insert_node(f); //TODO: perform memory allocation
+				G->insert_node(f);
+
+
+			/************ delete **********/
 			} else if (cmd == "delete") {
 				hdt* to_delete = G->find(cwd->data->file_path+"/"+arg);
+				to_delete->parent->data->time_stamp = std::chrono::system_clock::now();
 				if (to_delete == nullptr){
 					std::cerr << "No such file or directory" << std::endl;
 				}
@@ -260,11 +343,12 @@ int main(int argc, char* argv[]) {
 					}));
 					//TODO: perform memory deallocation on ldisk
 				}
+
+
 			} else {
 				std::cerr << "Invalid command!" << std::endl;
 				std::cout << valid_commands() << std::endl;
 			}
-
 
 
 
@@ -275,27 +359,78 @@ int main(int argc, char* argv[]) {
 			double bytes = std::stod(tokens[2]);
 			(void)bytes; //silence "unused" warning for now
 
-
-
-			/************ append **********/
-			if (cmd == "append"){
-				//TODO: append bytes to given file, make sure it's a file and not a directory
-
-
-
-
-
-			/************ remove **********/
-			} else if (cmd == "remove"){
-				//TODO: remove bytes from given file, make sure it's a file and not a directory
-
-
-
-			} else {
-				std::cerr << "Invalid command!" << std::endl;
-				std::cout << valid_commands() << std::endl;
+			//check if the file exists in current directory
+			bool exists = false;
+			File* to_mod;
+			for(auto it = cwd->children.begin(); it != cwd->children.end(); ++it){
+				if ((*it)->data->file_name == fname){
+					exists = true;
+					to_mod = (*it)->data;
+					break;
+				}
 			}
+			if (!exists){
+				std::cerr << "NO SUCH FILE." << std::endl;
+				delete to_mod;
+			} else {
 
+				/************ append **********/
+				if (cmd == "append"){
+					//TODO: append bytes to given file, make sure it's a file and not a directory
+					to_mod->time_stamp = std::chrono::system_clock::now();
+					unsigned remaining = to_mod->remaining;
+					unsigned overflow = (int)bytes % (int)block_size;
+					unsigned additional_blocks = 0;
+					if(to_mod->remaining){
+						unsigned excess = overflow + to_mod->remaining;
+						if (excess < block_size){
+							to_mod->remaining = excess;
+						} else if (excess == block_size) {
+							to_mod->remaining = 0;
+						} else {
+							additional_blocks += 1;
+							to_mod->remaining = excess % block_size;
+						}
+					} else {
+						to_mod->remaining = overflow;
+					}
+					if (bytes < block_size){
+						additional_blocks +=1;
+					} else {
+						additional_blocks += ceil((bytes*1.0)/block_size);
+					}
+
+					unsigned cur_block = 0;
+					std::vector<unsigned> reserved;
+					while(cur_block != block_sets->num_blocks && additional_blocks != 0){
+						if(!block_sets->blocks.at(cur_block)){
+							block_sets->blocks.at(cur_block) = true;
+							reserved.push_back(cur_block);
+							--additional_blocks;
+						}
+						cur_block++;
+					}
+					if (additional_blocks){
+						std::cerr << "NOT ENOUGH SPACE FOR FILE. BYTES NOT ADDED." << std::endl;
+						for (unsigned b : reserved) block_sets->blocks.at(b)= false;
+						to_mod->remaining = remaining;
+						reserved.clear();
+					} else {
+						for(auto ind : reserved) to_mod->lf.push_back(ind);
+						to_mod->size += bytes;
+					}
+
+				/************ remove **********/
+				} else if (cmd == "remove"){
+					//TODO: remove bytes from given file, make sure it's a file and not a directory
+
+
+
+				} else {
+					std::cerr << "Invalid command!" << std::endl;
+					std::cout << valid_commands() << std::endl;
+				}
+			}
 
 		/* skip if mans just passed a newline or something */
 		} else if (line.empty() || tokens.empty()) {

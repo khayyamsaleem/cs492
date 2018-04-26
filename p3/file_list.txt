@@ -1,14 +1,6 @@
-8616712182        0 -rw-r--r--    1 khayyamsaleem    staff                   0 Apr 24 18:48 ./file_list.txt
-8616697795        8 -rw-r--r--    1 khayyamsaleem    staff                 212 Apr 24 15:58 ./Makefile
-8616661580        8 -rw-r--r--    1 khayyamsaleem    staff                2834 Apr 24 18:46 ./include/hdt.h
-8616464006        8 -rw-r--r--    1 khayyamsaleem    staff                1968 Apr 23 17:36 ./include/ldisk.h
-8616727872      280 -rwxr-xr-x    1 khayyamsaleem    staff              141104 Apr 24 18:46 ./filesystem
-8616727878      760 -rw-r--r--    1 khayyamsaleem    staff              386472 Apr 24 18:46 ./filesystem.dSYM/Contents/Resources/DWARF/filesystem
-8616727877        8 -rw-r--r--    1 khayyamsaleem    staff                 639 Apr 24 18:46 ./filesystem.dSYM/Contents/Info.plist
-8616456630        8 -rw-r--r--    1 khayyamsaleem    staff                  24 Apr 23 17:28 ./.gitignore
-8616636634        8 -rw-r--r--    1 khayyamsaleem    staff                1665 Apr 24 09:52 ./.settings/language.settings.xml
-8616636626        8 -rw-r--r--    1 khayyamsaleem    staff                 811 Apr 24 09:51 ./.project
-8616712249        8 -rw-r--r--    1 khayyamsaleem    staff                 155 Apr 24 16:31 ./dir_list.txt
-8616636636       16 -rw-r--r--    1 khayyamsaleem    staff                6633 Apr 24 09:52 ./.cproject
-8616173330      984 -rw-r--r--    1 khayyamsaleem    staff              501380 Apr 18 19:50 ./hw3.pdf
-8616637648       16 -rw-r--r--    1 khayyamsaleem    staff                4239 Apr 24 18:43 ./src/fs.cpp
+  4981785      4 -rw-rw-r--   1 rob      rob             2 Apr 19 18:46 ./smol_boye.txt
+  4981785      4 -rw-rw-r--   1 rob      rob             4 Apr 19 18:46 ./one_block.txt
+  4981785      4 -rw-rw-r--   1 rob      rob            15 Apr 19 18:46 ./top_level_file.txt
+  4981784      4 -rw-rw-r--   1 rob      rob            17 Apr 19 18:45 ./a/b/c/d/d_child.txt
+  4981783      4 -rw-rw-r--   1 rob      rob             5 Apr 19 18:45 ./a/b/b_child.txt
+  4981782      4 -rw-rw-r--   1 rob      rob            19 Apr 19 18:44 ./xyz/dank_meme.png
