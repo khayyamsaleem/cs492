@@ -10,6 +10,7 @@
 #include <vector>
 #include <fstream>
 #include <math.h>
+#include <algorithm>
 
 /* displays valid commands */
 const char* valid_commands() {
