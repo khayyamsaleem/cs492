@@ -11,30 +11,31 @@
 #include <fstream>
 #include <math.h>
 
-
 /* displays valid commands */
-const char* valid_commands(){
-	 return "Valid commands:\n"
-	 "\tcd [directory] - set specified directory as the current directory\n"
-	 "\tcd.. - set parent directory as current directory\n"
-	 "\tls - list all files and sub-directories in current directory\n"
-	 "\tmkdir [name] - create a new directory in the current directory\n"
-	 "\tcreate [name] - create a new file in the current directory\n"
-	 "\tappend [name] [bytes] - append a number of bytes to the file\n"
-	 "\tremove [name] [bytes] - delete a number of bytes from the file\n"
-	 "\tdelete [name] - delete the file or directory\n"
-	 "\texit - deallocate data structures and exit program\n"
-	 "\tdir - print out directory tree in breadth-first order\n"
-	 "\tprfiles - print out all file information\n"
-	 "\tprdisk - print out disk space information";
+const char* valid_commands() {
+	return "Valid commands:\n"
+			"\tcd [directory] - set specified directory as the current directory\n"
+			"\tcd.. - set parent directory as current directory\n"
+			"\tls - list all files and sub-directories in current directory\n"
+			"\tmkdir [name] - create a new directory in the current directory\n"
+			"\tcreate [name] - create a new file in the current directory\n"
+			"\tappend [name] [bytes] - append a number of bytes to the file\n"
+			"\tremove [name] [bytes] - delete a number of bytes from the file\n"
+			"\tdelete [name] - delete the file or directory\n"
+			"\texit - deallocate data structures and exit program\n"
+			"\tdir - print out directory tree in breadth-first order\n"
+			"\tprfiles - print out all file information\n"
+			"\tprdisk - print out disk space information";
 }
 
 /* splits string by spaces */
-std::vector<std::string> tokenize(std::string s, std::string delim){
+std::vector<std::string> tokenize(std::string s, std::string delim) {
 	std::string buf;
 	std::stringstream ss(s);
 	std::vector<std::string> tokens;
-	while (ss >> buf) if (!buf.empty()) tokens.push_back(buf);
+	while (ss >> buf)
+		if (!buf.empty())
+			tokens.push_back(buf);
 	return tokens;
 }
 
@@ -59,7 +60,8 @@ int main(int argc, char* argv[]) {
 				block_size = std::atoi(argv[++i]);
 				break;
 			default:
-				std::cerr << "FLAG " << argv[i][1] << " NOT VALID!" << std::endl;
+				std::cerr << "FLAG " << argv[i][1] << " NOT VALID!"
+						<< std::endl;
 				std::exit(1);
 				break;
 			}
@@ -78,7 +80,6 @@ int main(int argc, char* argv[]) {
 	/* initialize list of contiguous disk blocks */
 	l_disk *block_sets = new l_disk(disk_size, block_size);
 
-
 	/* get info out of dir_list */
 	std::ifstream f_dirs(info_on_directories);
 	std::string line;
@@ -90,7 +91,8 @@ int main(int argc, char* argv[]) {
 				continue;
 			if (lc == 0) {
 				/* create root */
-				File *f = new File(0, line.substr(0, line.find_last_of("/")), init_t, DIR_T);
+				File *f = new File(0, line.substr(0, line.find_last_of("/")),
+						init_t, DIR_T);
 				G = new hdt(f);
 			} else {
 				/* add directory to tree */
@@ -119,12 +121,14 @@ int main(int argc, char* argv[]) {
 				/* add file to tree */
 
 				//memory allocation work on ldisk for file
-				unsigned blocks_required = ceil((1.0*size_in_bytes) / block_size);
+				unsigned blocks_required = ceil(
+						(1.0 * size_in_bytes) / block_size);
 				unsigned cur_block = 0;
 				std::vector<unsigned> reserved;
 				bool can_add;
-				while(cur_block != block_sets->num_blocks && blocks_required != 0){
-					if(!block_sets->blocks.at(cur_block)){
+				while (cur_block != block_sets->num_blocks
+						&& blocks_required != 0) {
+					if (!block_sets->blocks.at(cur_block)) {
 						block_sets->blocks.at(cur_block) = true;
 						reserved.push_back(cur_block);
 						--blocks_required;
@@ -132,16 +136,18 @@ int main(int argc, char* argv[]) {
 					cur_block++;
 				}
 				can_add = true;
-				if (blocks_required){
+				if (blocks_required) {
 					can_add = false;
-					std::cerr << "NOT ENOUGH SPACE FOR FILE. NOT ADDED." << std::endl;
-					for (unsigned b : reserved) block_sets->blocks.at(b)= false;
+					std::cerr << "NOT ENOUGH SPACE FOR FILE. NOT ADDED."
+							<< std::endl;
+					for (unsigned b : reserved)
+						block_sets->blocks.at(b) = false;
 					reserved.clear();
 				}
-				if(can_add){ //only add to tree if there was enough space
+				if (can_add) { //only add to tree if there was enough space
 					File *f = new File(size_in_bytes, f_path, init_t, FILE_T);
 					f->lf = reserved;
-					f->remaining = (int)size_in_bytes % (int)block_size;
+					f->remaining = (int) size_in_bytes % (int) block_size;
 					G->insert_node(f);
 				}
 			} else {
@@ -154,48 +160,43 @@ int main(int argc, char* argv[]) {
 		std::exit(1);
 	}
 
-
 	/* starting repl */
 	hdt *cwd = G;
 	std::cout << cwd->data->file_path << " >>> ";
 	std::cout.flush();
-	while (std::getline(std::cin, line)){
+	while (std::getline(std::cin, line)) {
 		std::vector<std::string> tokens = tokenize(line, " ");
 
 		/* commands without arguments */
-		if(tokens.size()==1){
+		if (tokens.size() == 1) {
 			std::string cmd = tokens[0];
 
-
 			/************ cd.. **********/
-			if (cmd == "cd.."){
-				if (cwd == G){
+			if (cmd == "cd..") {
+				if (cwd == G) {
 					std::cout << "Already at root!" << std::endl;
 				} else {
 					cwd = cwd->parent;
 				}
 
-
-			/************ ls **********/
-			} else if (cmd == "ls"){
-				for (auto it = cwd->children.begin(); it != cwd->children.end(); ++it)
+				/************ ls **********/
+			} else if (cmd == "ls") {
+				for (auto it = cwd->children.begin(); it != cwd->children.end();
+						++it)
 					std::cout << *((*it)->data) << std::endl;
 
-
-			/************ exit **********/
+				/************ exit **********/
 			} else if (cmd == "exit") {
 				std::cout << "Bye!" << std::endl;
 				delete G;
 				delete block_sets;
 				std::exit(0);
 
-
-			/************ dir **********/
-			} else if (cmd == "dir"){
+				/************ dir **********/
+			} else if (cmd == "dir") {
 				std::cout << *G << std::endl;
 
-
-			/************ prdisk **********/
+				/************ prdisk **********/
 			} else if (cmd == "prdisk") {
 				std::cout << *block_sets << std::endl;
 				std::cout << "FRAGMENTATION: ";
@@ -203,14 +204,16 @@ int main(int argc, char* argv[]) {
 				hdt *cur = G;
 				std::queue<hdt*> q;
 				while (cur) {
-					if(cur->data->type == FILE_T){
-						if (cur->data->remaining){
+					if (cur->data->type == FILE_T) {
+						if (cur->data->remaining) {
 							frag += block_size - cur->data->remaining;
 						}
 					}
-					for (auto it = cur->children.begin(); it != cur->children.end(); ++it)
+					for (auto it = cur->children.begin();
+							it != cur->children.end(); ++it)
 						q.push(*it);
-					if (q.empty()) cur = nullptr;
+					if (q.empty())
+						cur = nullptr;
 					else {
 						cur = q.front();
 						q.pop();
@@ -218,8 +221,7 @@ int main(int argc, char* argv[]) {
 				}
 				std::cout << frag << " BYTES" << std::endl;
 
-
-			/************ prfiles **********/
+				/************ prfiles **********/
 			} else if (cmd == "prfiles") {
 				// find all files in the file tree
 				//print name, size, ts
@@ -227,31 +229,40 @@ int main(int argc, char* argv[]) {
 				hdt *cur = G;
 				std::queue<hdt*> q;
 				while (cur) {
-					if(cur->data->type == FILE_T){
+					if (cur->data->type == FILE_T) {
 						std::cout << *(cur->data) << std::endl;
 						//TODO: print out LFILE properly
 						std::cout << "LFILE: ";
-						if (cur->data->lf.size()){
+						if (cur->data->lf.size()) {
 							int start = cur->data->lf.at(0);
-							for(auto it = cur->data->lf.begin(); it != cur->data->lf.end(); ++it){
+							for (auto it = cur->data->lf.begin();
+									it != cur->data->lf.end(); ++it) {
 								int block = *it;
-								if (it == cur->data->lf.end()-1){
-									if (block == start){
-										std::cout << "(" << start*block_size << " -> " <<
-												(start*block_size) + block_size << ") ";
+								if (it == cur->data->lf.end() - 1) {
+									if (block == start) {
+										std::cout << "(" << start * block_size
+												<< " -> "
+												<< (start * block_size)
+														+ block_size << ") ";
 									} else {
-										std::cout << "(" << start*block_size << " -> " <<
-												(block*block_size) + block_size << ") ";
+										std::cout << "(" << start * block_size
+												<< " -> "
+												<< (block * block_size)
+														+ block_size << ") ";
 									}
-								} else if (*(it+1)-block != 1){
-									if (block == start){
-										std::cout << "("<< start*block_size << " -> " <<
-												(start*block_size) + block_size << ") ";
+								} else if (*(it + 1) - block != 1) {
+									if (block == start) {
+										std::cout << "(" << start * block_size
+												<< " -> "
+												<< (start * block_size)
+														+ block_size << ") ";
 									} else {
-										std::cout << "("<< start*block_size << " -> " <<
-												(block*block_size) + block_size << ") ";
+										std::cout << "(" << start * block_size
+												<< " -> "
+												<< (block * block_size)
+														+ block_size << ") ";
 									}
-									start = *(it+1);
+									start = *(it + 1);
 								}
 							}
 							std::cout << std::endl;
@@ -259,49 +270,47 @@ int main(int argc, char* argv[]) {
 							std::cout << "(no blocks allocated)" << std::endl;
 						}
 					}
-					for (auto it = cur->children.begin(); it != cur->children.end(); ++it)
+					for (auto it = cur->children.begin();
+							it != cur->children.end(); ++it)
 						q.push(*it);
-					if (q.empty()) cur = nullptr;
+					if (q.empty())
+						cur = nullptr;
 					else {
 						cur = q.front();
 						q.pop();
 					}
 				}
 
-
-			/************ clear, for convenience **********/
+				/************ clear, for convenience **********/
 			} else if (cmd == "clear") {
 				std::system("clear");
-
 
 			} else {
 				std::cerr << "Invalid command!" << std::endl;
 				std::cout << valid_commands() << std::endl;
 			}
 
-
-
-		/* commands with one argument */
-		} else if (tokens.size() == 2){
+			/* commands with one argument */
+		} else if (tokens.size() == 2) {
 			std::string cmd = tokens[0];
 			std::string arg = tokens[1];
 
-
 			/************ cd **********/
-			if (cmd == "cd"){
+			if (cmd == "cd") {
 				/* adding this due to force of habit, don't @ me */
-				if (arg == ".."){
-					if (cwd == G){
+				if (arg == "..") {
+					if (cwd == G) {
 						std::cout << "Already at root!" << std::endl;
 					} else {
 						cwd = cwd->parent;
 					}
 				} else {
 					bool found = false;
-					for(auto it = cwd->children.begin(); it != cwd->children.end(); ++it){
-						if ((*it)->data->file_name == arg){
+					for (auto it = cwd->children.begin();
+							it != cwd->children.end(); ++it) {
+						if ((*it)->data->file_name == arg) {
 							found = true;
-							if ((*it)->data->type==DIR_T){
+							if ((*it)->data->type == DIR_T) {
 								cwd = *it;
 							} else {
 								std::cerr << "Not a directory!" << std::endl;
@@ -313,77 +322,78 @@ int main(int argc, char* argv[]) {
 						std::cerr << "Directory not found!" << std::endl;
 				}
 
-
-
-			/************ mkdir **********/
+				/************ mkdir **********/
 			} else if (cmd == "mkdir") {
-				File *f = new File(0, cwd->data->file_path+"/"+arg, std::chrono::system_clock::now(), DIR_T);
+				File *f = new File(0, cwd->data->file_path + "/" + arg,
+						std::chrono::system_clock::now(), DIR_T);
 				G->insert_node(f);
 
-
-			/************ create **********/
+				/************ create **********/
 			} else if (cmd == "create") {
-				File *f = new File(0, cwd->data->file_path+"/"+arg, std::chrono::system_clock::now(), FILE_T);
+				File *f = new File(0, cwd->data->file_path + "/" + arg,
+						std::chrono::system_clock::now(), FILE_T);
 				G->insert_node(f);
 
-
-			/************ delete **********/
+				/************ delete **********/
 			} else if (cmd == "delete") {
-				hdt* to_delete = G->find(cwd->data->file_path+"/"+arg);
-				to_delete->parent->data->time_stamp = std::chrono::system_clock::now();
-				if (to_delete == nullptr){
+				hdt* to_delete = G->find(cwd->data->file_path + "/" + arg);
+				to_delete->parent->data->time_stamp =
+						std::chrono::system_clock::now();
+				if (to_delete == nullptr) {
 					std::cerr << "No such file or directory" << std::endl;
 				}
-				if (to_delete->data->type == DIR_T && !to_delete->children.empty()){
-					std::cerr << "Cannot delete non-empty directory!" << std::endl;
+				if (to_delete->data->type == DIR_T
+						&& !to_delete->children.empty()) {
+					std::cerr << "Cannot delete non-empty directory!"
+							<< std::endl;
 				} else {
 					auto children = &(to_delete->parent->children);
-					children->erase(std::remove_if(children->begin(), children->end(), [&](hdt* x){
-						return x == to_delete;
-					}));
+					children->erase(
+							std::remove_if(children->begin(), children->end(),
+									[&](hdt* x) {
+										return x == to_delete;
+									}));
 					//TODO: perform memory deallocation on ldisk
 				}
-
 
 			} else {
 				std::cerr << "Invalid command!" << std::endl;
 				std::cout << valid_commands() << std::endl;
 			}
 
-
-
-		/* commands with two arguments */
+			/* commands with two arguments */
 		} else if (tokens.size() == 3) {
 			std::string cmd = tokens[0];
 			std::string fname = tokens[1];
 			double bytes = std::stod(tokens[2]);
-			(void)bytes; //silence "unused" warning for now
+			(void) bytes; //silence "unused" warning for now
 
 			//check if the file exists in current directory
 			bool exists = false;
 			File* to_mod;
-			for(auto it = cwd->children.begin(); it != cwd->children.end(); ++it){
-				if ((*it)->data->file_name == fname){
+			for (auto it = cwd->children.begin(); it != cwd->children.end();
+					++it) {
+				if ((*it)->data->file_name == fname) {
 					exists = true;
 					to_mod = (*it)->data;
 					break;
 				}
 			}
-			if (!exists){
-				std::cerr << "NO SUCH FILE." << std::endl;
+			if (!exists) {
+				std::cerr << "NO SUCH FILE IN CURRENT DIRECTORY." << std::endl;
 				delete to_mod;
 			} else {
 
 				/************ append **********/
-				if (cmd == "append"){
+				if (cmd == "append") {
 					//TODO: append bytes to given file, make sure it's a file and not a directory
 					to_mod->time_stamp = std::chrono::system_clock::now();
 					unsigned remaining = to_mod->remaining;
-					unsigned overflow = (int)bytes % (int)block_size;
+					unsigned overflow = (int) bytes % (int) block_size;
 					unsigned additional_blocks = 0;
-					if(to_mod->remaining){
+					if (to_mod->remaining) {
 						unsigned excess = overflow + to_mod->remaining;
-						if (excess < block_size){
+						if (excess < block_size) {
 							to_mod->remaining = excess;
 						} else if (excess == block_size) {
 							to_mod->remaining = 0;
@@ -394,37 +404,108 @@ int main(int argc, char* argv[]) {
 					} else {
 						to_mod->remaining = overflow;
 					}
-					if (bytes < block_size){
-						additional_blocks +=1;
+					if (bytes < block_size) {
+						additional_blocks += 1;
 					} else {
-						additional_blocks += ceil((bytes*1.0)/block_size);
+						additional_blocks += ceil((bytes * 1.0) / block_size);
 					}
 
 					unsigned cur_block = 0;
 					std::vector<unsigned> reserved;
-					while(cur_block != block_sets->num_blocks && additional_blocks != 0){
-						if(!block_sets->blocks.at(cur_block)){
+					while (cur_block != block_sets->num_blocks
+							&& additional_blocks != 0) {
+						if (!block_sets->blocks.at(cur_block)) {
 							block_sets->blocks.at(cur_block) = true;
 							reserved.push_back(cur_block);
 							--additional_blocks;
 						}
 						cur_block++;
 					}
-					if (additional_blocks){
-						std::cerr << "NOT ENOUGH SPACE FOR FILE. BYTES NOT ADDED." << std::endl;
-						for (unsigned b : reserved) block_sets->blocks.at(b)= false;
+					if (additional_blocks) {
+						std::cerr
+								<< "NOT ENOUGH SPACE FOR FILE. BYTES NOT ADDED."
+								<< std::endl;
+						for (unsigned b : reserved)
+							block_sets->blocks.at(b) = false;
 						to_mod->remaining = remaining;
 						reserved.clear();
 					} else {
-						for(auto ind : reserved) to_mod->lf.push_back(ind);
+						for (auto ind : reserved)
+							to_mod->lf.push_back(ind);
 						to_mod->size += bytes;
 					}
 
-				/************ remove **********/
-				} else if (cmd == "remove"){
-					//TODO: remove bytes from given file, make sure it's a file and not a directory
 
 
+					/************ remove **********/
+				} else if (cmd == "remove") {
+					unsigned f_size;
+					if (to_mod->remaining == 0) {
+						f_size = to_mod->lf.size() * block_size;
+					} else if (to_mod->lf.size()) {
+						f_size = ((to_mod->lf.size() - 1) * block_size)
+								+ to_mod->remaining;
+					} else {
+						f_size = 0;
+					}
+
+					if (f_size < bytes) {
+						std::cerr
+								<< "CANNOT REMOVE MORE BYTES THAN SIZE OF FILE."
+								<< std::endl;
+					} else {
+						if (f_size == bytes) {
+							for (auto i : to_mod->lf) {
+								block_sets->blocks.at(i) = false;
+							}
+							to_mod->lf.clear();
+							to_mod->remaining = 0;
+							to_mod->time_stamp =
+									std::chrono::system_clock::now();
+							to_mod->size -= bytes;
+						} else if (bytes <= to_mod->remaining) {
+							to_mod->remaining = (to_mod->remaining - bytes);
+							if (bytes == to_mod->remaining) {
+								block_sets->blocks.at(to_mod->lf.back()) =
+										false;
+								to_mod->lf.pop_back();
+							}
+							to_mod->time_stamp =
+									std::chrono::system_clock::now();
+							to_mod->size -= bytes;
+						} else if (bytes < block_size && !to_mod->remaining) {
+							to_mod->remaining = block_size - bytes;
+							if (bytes == block_size) {
+								block_sets->blocks.at(to_mod->lf.back()) =
+										false;
+								to_mod->lf.pop_back();
+							}
+							to_mod->time_stamp =
+									std::chrono::system_clock::now();
+							to_mod->size -= bytes;
+						} else {
+							bytes += to_mod->remaining; // add our leftover
+							// Set our new leftover value
+							to_mod->remaining = (int) bytes % (int) block_size;
+							unsigned blocks_to_remove = (bytes
+									- to_mod->remaining) / block_size;
+							if (to_mod->remaining) {
+								// If we have a leftover, we need an extra block for it
+								blocks_to_remove--;
+							}
+							while (blocks_to_remove) {
+								// Del the last block, free the location in ldisk, and move to the next
+								block_sets->blocks.at(to_mod->lf.back()) =
+										false;
+								to_mod->lf.pop_back();
+								blocks_to_remove--;
+							}
+							// Update timestamp
+							to_mod->time_stamp =
+									std::chrono::system_clock::now();
+							to_mod->size -= bytes;
+						}
+					}
 
 				} else {
 					std::cerr << "Invalid command!" << std::endl;
@@ -432,11 +513,11 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
-		/* skip if mans just passed a newline or something */
+			/* skip if mans just passed a newline or something */
 		} else if (line.empty() || tokens.empty()) {
 			;
 
-		/* commands can only by 1, 2, or 3 tokens long */
+			/* commands can only by 1, 2, or 3 tokens long */
 		} else {
 			std::cerr << "Invalid command!" << std::endl;
 			std::cout << valid_commands() << std::endl;
